@@ -185,5 +185,14 @@ public class LineAcceptanceTest extends AcceptanceTest {
         return requestCreate(path, params);
     }
 
+    @Test
+    void deleteSection() {
+        requestCreateSection();
+
+        var path = "/lines/" + getId(responseCreateLine) + "/sections?stationId=1";
+        var response = requestDelete(path);
+
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
+    }
 }
 
