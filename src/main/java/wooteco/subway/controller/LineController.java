@@ -9,12 +9,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import wooteco.subway.dto.line.LineRequest;
 import wooteco.subway.dto.line.LineResponse;
+import wooteco.subway.dto.section.SectionRequest;
 import wooteco.subway.service.LineService;
 
 @RestController
+@RequestMapping("/lines")
 public class LineController {
 
     private final LineService lineService;
@@ -23,33 +26,39 @@ public class LineController {
         this.lineService = lineService;
     }
 
-    @PostMapping("/lines")
+    @PostMapping
     public ResponseEntity<LineResponse> createLine(@RequestBody LineRequest lineRequest) {
         var lineResponse = lineService.createLine(lineRequest);
         return ResponseEntity.created(URI.create("/lines/" + lineResponse.getId())).body(lineResponse);
     }
 
-    @GetMapping("/lines/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<LineResponse> showLine(@PathVariable Long id) {
         var lineInfos = lineService.findLineInfos(id);
         return ResponseEntity.ok().body(lineInfos);
     }
 
-    @GetMapping("/lines")
+    @GetMapping
     public ResponseEntity<List<LineResponse>> showLines() {
         var lineResponses = lineService.findAll();
         return ResponseEntity.ok().body(lineResponses);
     }
 
-    @PutMapping("/lines/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<Void> updateLine(@PathVariable Long id, @RequestBody LineRequest lineRequest) {
         lineService.updateById(id, lineRequest.getName(), lineRequest.getColor());
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/lines/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteLine(@PathVariable Long id) {
         lineService.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/sections")
+    public ResponseEntity<Void> createSection(@PathVariable Long id, @RequestBody SectionRequest sectionRequest) {
+        lineService.createSection(id, sectionRequest);
+        return ResponseEntity.ok().build();
     }
 }

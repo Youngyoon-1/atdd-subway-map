@@ -166,5 +166,24 @@ public class LineAcceptanceTest extends AcceptanceTest {
         // then
         assertThat(response.statusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
     }
+
+    @Test
+    void createSection() {
+        var response = requestCreateSection();
+
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
+    }
+
+    private ExtractableResponse<Response> requestCreateSection() {
+        var path = "/lines/" + getId(responseCreateLine) + "/sections";
+
+        Map<String, String> params = new HashMap<>();
+        params.put("upStationId", "1");
+        params.put("downStationId", "2");
+        params.put("distance", "3");
+
+        return requestCreate(path, params);
+    }
+
 }
 
