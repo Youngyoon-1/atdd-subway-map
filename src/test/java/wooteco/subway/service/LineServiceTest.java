@@ -22,8 +22,10 @@ class LineServiceTest {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
-
     private LineService lineService;
+    private Long upStationId;
+    private Long downStationId;
+    private LineRequest lineRequest;
 
     @BeforeEach
     void setUp() {
@@ -32,30 +34,9 @@ class LineServiceTest {
                 new SectionDao(jdbcTemplate),
                 new StationDao(jdbcTemplate)
         );
-    }
-
-    @Test
-    @DisplayName("노선 생성")
-    void saveLine() {
-        //given
-        var upStationId = insertStation("테스트1역");
-        var downStationId = insertStation("테스트2역");
-
-        //when
-        var lineResponse = lineService.createLine(
-                new LineRequest("테스트호선", "테스트색", upStationId, downStationId, 1)
-        );
-
-        var upStationResponse = lineResponse.getStations().get(0);
-        var downStationResponse = lineResponse.getStations().get(1);
-
-        //then
-        assertAll(
-                () -> assertThat(upStationResponse.getId()).isEqualTo(upStationId),
-                () -> assertThat(downStationResponse.getId()).isEqualTo(downStationId),
-                () -> assertThat(lineResponse.getName()).isEqualTo("테스트호선"),
-                () -> assertThat(lineResponse.getColor()).isEqualTo("테스트색")
-        );
+        upStationId = insertStation("테스트1역");
+        downStationId = insertStation("테스트2역");
+        lineRequest = new LineRequest("테스트호선", "테스트색", upStationId, downStationId, 1);
     }
 
     private Long insertStation(String name) {
@@ -72,9 +53,23 @@ class LineServiceTest {
     }
 
     @Test
+    @DisplayName("노선 생성")
+    void saveLine() {
+        var lineResponse = lineService.createLine(lineRequest);
+        var upStationResponse = lineResponse.getStations().get(0);
+        var downStationResponse = lineResponse.getStations().get(1);
+
+        assertAll(
+                () -> assertThat(upStationResponse.getId()).isEqualTo(upStationId),
+                () -> assertThat(downStationResponse.getId()).isEqualTo(downStationId),
+                () -> assertThat(lineResponse.getName()).isEqualTo("테스트호선"),
+                () -> assertThat(lineResponse.getColor()).isEqualTo("테스트색")
+        );
+    }
+
+    @Test
     @DisplayName("중복 노선 생성시 예외 발생")
     void duplicateLineName() {
-        var lineRequest = new LineRequest("테스트호선", "테스트색");
         lineService.createLine(lineRequest);
 
         assertThatThrownBy(() -> lineService.createLine(lineRequest))
@@ -85,7 +80,6 @@ class LineServiceTest {
     @DisplayName("노선 조회")
     void findLine() {
         //given
-        var lineRequest = new LineRequest("1호선", "blue");
         var lineResponse = lineService.createLine(lineRequest);
 
         //when
@@ -94,8 +88,8 @@ class LineServiceTest {
         //then
         assertAll(
                 () -> assertThat(findLineResponse.getId()).isEqualTo(lineResponse.getId()),
-                () -> assertThat(findLineResponse.getName()).isEqualTo("1호선"),
-                () -> assertThat(findLineResponse.getColor()).isEqualTo("blue")
+                () -> assertThat(findLineResponse.getName()).isEqualTo("테스트호선"),
+                () -> assertThat(findLineResponse.getColor()).isEqualTo("테스트색")
         );
     }
 
@@ -110,9 +104,6 @@ class LineServiceTest {
     @DisplayName("노선 목록 조회")
     void findAllLine() {
         //given
-        var upStationId = insertStation("테스트1역");
-        var downStationId = insertStation("테스트2역");
-        var lineRequest = new LineRequest("1호선", "blue", upStationId, downStationId, 1);
         var createResponse = lineService.createLine(lineRequest);
 
         //when
@@ -127,12 +118,12 @@ class LineServiceTest {
     @DisplayName("노선 업데이트 성공")
     void updateLine() {
         //given
-        var lineRequest = new LineRequest("1호선", "blue");
         var lineResponse = lineService.createLine(lineRequest);
+        var id = lineResponse.getId();
 
         //when
-        lineService.updateById(lineResponse.getId(), "2호선", "green");
-        var lineInfos = lineService.findLineInfos(lineResponse.getId());
+        lineService.updateById(id, "2호선", "green");
+        var lineInfos = lineService.findLineInfos(id);
 
         //then
         assertAll(
@@ -144,17 +135,19 @@ class LineServiceTest {
     @Test
     @DisplayName("노선 업데이트 실패")
     void failUpdateLine() {
-        var lineRequest1 = new LineRequest("1호선", "blue");
-        lineService.createLine(lineRequest1);
-        var lineRequest2 = new LineRequest("2호선", "green");
+        lineService.createLine(lineRequest);
+
+        var upStationId2 = insertStation("테스트3역");
+        var downStationId2 = insertStation("테스트4역");
+        var lineRequest2 = new LineRequest("테스트2호선", "테스트2색", upStationId2, downStationId2, 1);
         var lineResponse2 = lineService.createLine(lineRequest2);
 
         assertAll(
                 () -> assertThatThrownBy(() -> lineService.updateById(-1L, "3호선", "orange"))
                         .isInstanceOf(NoSuchElementException.class),
-                () -> assertThatThrownBy(() -> lineService.updateById(lineResponse2.getId(), "1호선", "black"))
+                () -> assertThatThrownBy(() -> lineService.updateById(lineResponse2.getId(), "테스트호선", "테스트2색"))
                         .isInstanceOf(IllegalArgumentException.class),
-                () -> assertThatThrownBy(() -> lineService.updateById(lineResponse2.getId(), "3호선", "blue"))
+                () -> assertThatThrownBy(() -> lineService.updateById(lineResponse2.getId(), "테스트2호선", "테스트색"))
                         .isInstanceOf(IllegalArgumentException.class)
         );
     }
@@ -163,7 +156,6 @@ class LineServiceTest {
     @DisplayName("노선 삭제")
     void deleteLine() {
         //given
-        var lineRequest = new LineRequest("500호선", "테스트색200");
         var lineResponse = lineService.createLine(lineRequest);
         var id = lineResponse.getId();
 

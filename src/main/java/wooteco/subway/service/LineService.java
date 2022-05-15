@@ -1,5 +1,6 @@
 package wooteco.subway.service;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
@@ -26,10 +27,13 @@ public class LineService {
 
     public LineResponse findLineInfos(Long id) {
         var sections = sectionDao.findByLineId(id);
-        var stations = stationDao.findByUpStationsIdAndDownStationId(
-                sections.getUpStationId(),
-                sections.getDownStationId()
-        );
+
+        var stations = sections.stream()
+                .map(it -> stationDao.findById(it.getUpStationId(), it.getDownStationId()))
+                .flatMap(Collection::stream)
+                .distinct()
+                .collect(Collectors.toList());
+
         var line = lineDao.findById(id);
 
         return new LineResponse(line, stations);
@@ -49,9 +53,9 @@ public class LineService {
 
         var line = lineDao.save(lineRequest);
 
-        sectionDao.save(line.getId(), new SectionRequest(upStationId, downStationId, lineRequest.getDistance()));
+        var stations = List.of(stationDao.findById(upStationId), stationDao.findById(downStationId));
 
-        var stations = stationDao.findByUpStationsIdAndDownStationId(upStationId, downStationId);
+        sectionDao.save(line.getId(), new SectionRequest(upStationId, downStationId, lineRequest.getDistance()));
 
         return new LineResponse(line, stations);
     }

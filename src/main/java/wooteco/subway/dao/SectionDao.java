@@ -1,7 +1,7 @@
 package wooteco.subway.dao;
 
+import java.util.List;
 import java.util.NoSuchElementException;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
@@ -42,12 +42,8 @@ public class SectionDao {
         }
     }
 
-    public SectionResponse findByLineId(Long id) {
+    public List<SectionResponse> findByLineId(Long id) {
         var sql = "SELECT up_station_id, down_station_id FROM section WHERE line_id = ?";
-        try {
-            return jdbcTemplate.queryForObject(sql, sectionRowMapper, id);
-        } catch (EmptyResultDataAccessException e) {
-            throw new NoSuchElementException("[ERROR] 노선의 아이디값과 일치하는 구간이 없습니다.");
-        }
+        return jdbcTemplate.query(sql, sectionRowMapper, id);
     }
 }

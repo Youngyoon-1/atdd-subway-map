@@ -3,6 +3,7 @@ package wooteco.subway.dao;
 import java.util.List;
 import java.util.NoSuchElementException;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -57,7 +58,16 @@ public class StationDao {
         }
     }
 
-    public List<StationResponse> findByUpStationsIdAndDownStationId(Long upStationId, Long downStationId) {
+    public StationResponse findById(Long id) {
+        var sql = "SELECT * FROM station WHERE id = ?";
+        try {
+            return jdbcTemplate.queryForObject(sql, stationRowMapper, id);
+        } catch (EmptyResultDataAccessException e) {
+            throw new NoSuchElementException("[ERROR] 존재하지 않는 역입니다.");
+        }
+    }
+
+    public List<StationResponse> findById(Long upStationId, Long downStationId) {
         var sql = "SELECT * FROM station WHERE id = ? OR id = ?";
         return jdbcTemplate.query(sql, stationRowMapper, upStationId, downStationId);
     }

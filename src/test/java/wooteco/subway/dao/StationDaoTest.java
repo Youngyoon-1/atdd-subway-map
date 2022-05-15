@@ -1,8 +1,10 @@
 package wooteco.subway.dao;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
+import java.util.NoSuchElementException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -55,9 +57,13 @@ class StationDaoTest {
     }
 
     @Test
-    void findByUpStationsIdAndDownStationId() {
-        var station2 = stationDao.save(new Station("잠실역"));
+    void findById() {
+        assertThat(stationDao.findById(station.getId())).isEqualTo(new StationResponse(station.getId(), "선릉역"));
+    }
 
-        assertThat(stationDao.findByUpStationsIdAndDownStationId(station.getId(), station2.getId())).hasSize(2);
+    @Test
+    void findByInvalidId() {
+        assertThatThrownBy(() -> stationDao.findById(-1L))
+                .isInstanceOf(NoSuchElementException.class);
     }
 }

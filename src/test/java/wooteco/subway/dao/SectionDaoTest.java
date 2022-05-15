@@ -73,17 +73,11 @@ public class SectionDaoTest {
 
     @Test
     void findByLineId() {
-        var section = sectionDao.findByLineId(lineId);
+        var section = sectionDao.findByLineId(lineId).get(0);
 
         assertAll(
                 () -> assertThat(sectionRequest.getUpStationId()).isEqualTo(section.getUpStationId()),
                 () -> assertThat(sectionRequest.getDownStationId()).isEqualTo(section.getDownStationId())
         );
-    }
-
-    @Test
-    void findByInvalidLineId() {
-        assertThatThrownBy(() -> sectionDao.findByLineId(-1L))
-                .isInstanceOf(NoSuchElementException.class);
     }
 }
