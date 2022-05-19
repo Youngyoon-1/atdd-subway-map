@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -11,11 +12,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import wooteco.subway.dao.LineDao;
 import wooteco.subway.dao.SectionDao;
 import wooteco.subway.dao.StationDao;
 import wooteco.subway.dto.line.LineRequest;
+import wooteco.subway.dto.section.SectionRequest;
+import wooteco.subway.dto.section.SectionResponse;
 
 @JdbcTest
 class LineServiceTest {
@@ -36,7 +40,7 @@ class LineServiceTest {
         );
         upStationId = insertStation("테스트1역");
         downStationId = insertStation("테스트2역");
-        lineRequest = new LineRequest("테스트호선", "테스트색", upStationId, downStationId, 1);
+        lineRequest = new LineRequest("테스트호선", "테스트색", upStationId, downStationId, 2);
     }
 
     private Long insertStation(String name) {
@@ -173,5 +177,51 @@ class LineServiceTest {
     void invalidLine() {
         assertThatThrownBy(() -> lineService.deleteById(-1L))
                 .isInstanceOf(NoSuchElementException.class);
+    }
+
+    @Test
+    @DisplayName("구간 생성시 상행역이 같을 경우 기존 구간을 변경한다.")
+    void createSection1() {
+        //given
+        var lineResponse = lineService.createLine(lineRequest);
+        var id = lineResponse.getId();
+        var testStationId = insertStation("테스트3역");
+
+        //when
+        lineService.createSection(id, new SectionRequest(upStationId, testStationId, 1));
+
+        //then
+        assertThat(findSectionByLineId(id)).contains(
+                new SectionResponse(upStationId, testStationId),
+                new SectionResponse(testStationId, downStationId)
+        );
+    }
+
+    @Test
+    @DisplayName("구간 생성시 하행역이 같을 경우 기존 구간을 변경한다.")
+    void createSection2() {
+        //given
+        var lineResponse = lineService.createLine(lineRequest);
+        var id = lineResponse.getId();
+        var testStationId = insertStation("테스트3역");
+
+        //when
+        lineService.createSection(id, new SectionRequest(testStationId, downStationId, 1));
+
+        //then
+        assertThat(findSectionByLineId(id)).contains(
+                new SectionResponse(testStationId, downStationId),
+                new SectionResponse(upStationId, testStationId)
+        );
+    }
+
+    private List<SectionResponse> findSectionByLineId(Long id) {
+        var sql = "SELECT * FROM section WHERE line_id = ?";
+        RowMapper<SectionResponse> sectionMapper = (rs, rowNum) -> {
+            var upStationId = rs.getLong("up_station_id");
+            var downStationId = rs.getLong("down_station_id");
+            return new SectionResponse(upStationId, downStationId);
+        };
+        return jdbcTemplate.query(sql, sectionMapper, id);
     }
 }

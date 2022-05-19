@@ -68,8 +68,45 @@ public class LineService {
         lineDao.deleteById(id);
     }
 
-    public void createSection(Long id, SectionRequest sectionRequest) {
-        sectionDao.save(id, sectionRequest);
+    @Transactional
+    public void createSection(Long lineId, SectionRequest sectionRequest) {
+        //하행 또는 상행이 중복역인 경우 기존 구간을 변경한다.
+        var upStationId = sectionRequest.getUpStationId();
+        var downStationId = sectionRequest.getDownStationId();
+
+        var sections = sectionDao.findByLineId(lineId);
+
+        // 상행역이 같은 경우
+        if (sections.stream().anyMatch(it -> it.getUpStationId().equals(upStationId))) {
+            var section = sections.stream().filter(it -> it.getUpStationId().equals(upStationId)).findAny().get();
+            var distance = section.getDistance() - sectionRequest.getDistance();
+            var newSectionRequest = new SectionRequest(
+                    section.getId(),
+                    sectionRequest.getDownStationId(),
+                    section.getDownStationId(),
+                    distance
+            );
+            sectionDao.update(newSectionRequest);
+            sectionDao.save(lineId, sectionRequest);
+            return;
+        }
+
+        // 하행역이 같은 경우
+        if (sections.stream().anyMatch(it -> it.getDownStationId().equals(downStationId))) {
+            var section = sections.stream().filter(it -> it.getDownStationId().equals(downStationId)).findAny().get();
+            var distance = section.getDistance() - sectionRequest.getDistance();
+            var newSectionRequest = new SectionRequest(
+                    section.getId(),
+                    section.getUpStationId(),
+                    upStationId,
+                    distance
+            );
+            sectionDao.update(newSectionRequest);
+            sectionDao.save(lineId, sectionRequest);
+            return;
+        }
+
+        sectionDao.save(lineId, sectionRequest);
     }
 
     public void deleteSection(Long lineId, Long stationId) {

@@ -13,9 +13,11 @@ public class SectionDao {
 
     private final JdbcTemplate jdbcTemplate;
     private final RowMapper<SectionResponse> sectionRowMapper = (rs, rowNum) -> {
+        var id = rs.getLong("id");
         var upStationId = rs.getLong("up_station_id");
         var downStationId = rs.getLong("down_station_id");
-        return new SectionResponse(upStationId, downStationId);
+        var distance = rs.getInt("distance");
+        return new SectionResponse(id, upStationId, downStationId, distance);
     };
 
     public SectionDao(JdbcTemplate jdbcTemplate) {
@@ -43,7 +45,17 @@ public class SectionDao {
     }
 
     public List<SectionResponse> findByLineId(Long id) {
-        var sql = "SELECT up_station_id, down_station_id FROM section WHERE line_id = ?";
+        var sql = "SELECT * FROM section WHERE line_id = ?";
         return jdbcTemplate.query(sql, sectionRowMapper, id);
+    }
+
+    public void update(SectionRequest sectionRequest) {
+        var sql = "UPDATE section SET up_station_id = ?, down_station_id = ?, distance = ? WHERE id = ?";
+        jdbcTemplate.update(sql,
+                sectionRequest.getUpStationId(),
+                sectionRequest.getDownStationId(),
+                sectionRequest.getDistance(),
+                sectionRequest.getId()
+                );
     }
 }
