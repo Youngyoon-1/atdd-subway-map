@@ -57,8 +57,20 @@ public class SectionsTest {
         var invalidSection2 = new Section(2L, 3L, 3);
 
         assertAll(
-                () -> assertThatThrownBy(() -> sections.createSection(invalidSection)).isInstanceOf(IllegalArgumentException.class),
-                () -> assertThatThrownBy(() -> sections.createSection(invalidSection2)).isInstanceOf(IllegalArgumentException.class)
+                () -> assertThatThrownBy(() -> sections.createSection(invalidSection)).isInstanceOf(
+                        IllegalArgumentException.class),
+                () -> assertThatThrownBy(() -> sections.createSection(invalidSection2)).isInstanceOf(
+                        IllegalArgumentException.class)
         );
+    }
+
+    @Test
+    @DisplayName("상행역과 하행역이 모두 같다면 예외 발생")
+    void createSection4() {
+        var invalidSection = new Section(1L, 3L, 1);
+
+        assertThatThrownBy(() -> sections.createSection(invalidSection))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("[ERROR] 상행역과 하행역이 이미 노선에 모두 등록되어 있습니다.");
     }
 }
