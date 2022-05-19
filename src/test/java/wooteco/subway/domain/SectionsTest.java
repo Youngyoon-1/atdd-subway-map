@@ -26,11 +26,11 @@ public class SectionsTest {
         var expected = new Section(2L, 3L, 1);
 
         assertAll(
-                () -> assertThat(sections.createSection(section).get().getUpStationId()).isEqualTo(
+                () -> assertThat(sections.createSection(section).getUpStationId()).isEqualTo(
                         expected.getUpStationId()),
-                () -> assertThat(sections.createSection(section).get().getDownStationId()).isEqualTo(
+                () -> assertThat(sections.createSection(section).getDownStationId()).isEqualTo(
                         expected.getDownStationId()),
-                () -> assertThat(sections.createSection(section).get().getDistance()).isEqualTo(expected.getDistance())
+                () -> assertThat(sections.createSection(section).getDistance()).isEqualTo(expected.getDistance())
         );
     }
 
@@ -42,11 +42,11 @@ public class SectionsTest {
         var expected = new Section(1L, 2L, 1);
 
         assertAll(
-                () -> assertThat(sections.createSection(section).get().getUpStationId()).isEqualTo(
+                () -> assertThat(sections.createSection(section).getUpStationId()).isEqualTo(
                         expected.getUpStationId()),
-                () -> assertThat(sections.createSection(section).get().getDownStationId()).isEqualTo(
+                () -> assertThat(sections.createSection(section).getDownStationId()).isEqualTo(
                         expected.getDownStationId()),
-                () -> assertThat(sections.createSection(section).get().getDistance()).isEqualTo(expected.getDistance())
+                () -> assertThat(sections.createSection(section).getDistance()).isEqualTo(expected.getDistance())
         );
     }
 
@@ -72,5 +72,15 @@ public class SectionsTest {
         assertThatThrownBy(() -> sections.createSection(invalidSection))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("[ERROR] 상행역과 하행역이 이미 노선에 모두 등록되어 있습니다.");
+    }
+
+    @Test
+    @DisplayName("상행역과 하행역을 모두 포함하지 않는다면 예외 발생")
+    void createSection5() {
+        var invalidSection = new Section(2L, 4L, 1);
+
+        assertThatThrownBy(() -> sections.createSection(invalidSection))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("[ERROR] 상행역과 하행역 둘 중 하나도 포함되어있지 않습니다.");
     }
 }

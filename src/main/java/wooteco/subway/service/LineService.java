@@ -78,7 +78,7 @@ public class LineService {
 
         var sections = new Sections(sectionDao.findByLineId(lineId));
 
-        sections.createSection(new Section(upStationId, downStationId, distance)).ifPresent(sectionDao::update);
+        sectionDao.update(sections.createSection(new Section(upStationId, downStationId, distance)));
         sectionDao.save(lineId, sectionRequest);
     }
 

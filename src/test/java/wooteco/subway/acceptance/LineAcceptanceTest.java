@@ -178,7 +178,7 @@ public class LineAcceptanceTest extends AcceptanceTest {
         var path = "/lines/" + getId(responseCreateLine) + "/sections";
 
         Map<String, String> params = new HashMap<>();
-        params.put("upStationId", "99");
+        params.put("upStationId", "1");
         params.put("downStationId", "100");
         params.put("distance", "3");
 
