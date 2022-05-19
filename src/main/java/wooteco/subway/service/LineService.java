@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 import wooteco.subway.dao.LineDao;
 import wooteco.subway.dao.SectionDao;
 import wooteco.subway.dao.StationDao;
+import wooteco.subway.domain.Section;
+import wooteco.subway.domain.Sections;
 import wooteco.subway.dto.line.LineRequest;
 import wooteco.subway.dto.line.LineResponse;
 import wooteco.subway.dto.section.SectionRequest;
@@ -70,42 +72,13 @@ public class LineService {
 
     @Transactional
     public void createSection(Long lineId, SectionRequest sectionRequest) {
-        //하행 또는 상행이 중복역인 경우 기존 구간을 변경한다.
         var upStationId = sectionRequest.getUpStationId();
         var downStationId = sectionRequest.getDownStationId();
+        var distance = sectionRequest.getDistance();
 
-        var sections = sectionDao.findByLineId(lineId);
+        var sections = new Sections(sectionDao.findByLineId(lineId));
 
-        // 상행역이 같은 경우
-        if (sections.stream().anyMatch(it -> it.getUpStationId().equals(upStationId))) {
-            var section = sections.stream().filter(it -> it.getUpStationId().equals(upStationId)).findAny().get();
-            var distance = section.getDistance() - sectionRequest.getDistance();
-            var newSectionRequest = new SectionRequest(
-                    section.getId(),
-                    sectionRequest.getDownStationId(),
-                    section.getDownStationId(),
-                    distance
-            );
-            sectionDao.update(newSectionRequest);
-            sectionDao.save(lineId, sectionRequest);
-            return;
-        }
-
-        // 하행역이 같은 경우
-        if (sections.stream().anyMatch(it -> it.getDownStationId().equals(downStationId))) {
-            var section = sections.stream().filter(it -> it.getDownStationId().equals(downStationId)).findAny().get();
-            var distance = section.getDistance() - sectionRequest.getDistance();
-            var newSectionRequest = new SectionRequest(
-                    section.getId(),
-                    section.getUpStationId(),
-                    upStationId,
-                    distance
-            );
-            sectionDao.update(newSectionRequest);
-            sectionDao.save(lineId, sectionRequest);
-            return;
-        }
-
+        sections.createSection(new Section(upStationId, downStationId, distance)).ifPresent(sectionDao::update);
         sectionDao.save(lineId, sectionRequest);
     }
 

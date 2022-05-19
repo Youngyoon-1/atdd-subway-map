@@ -5,19 +5,19 @@ import java.util.NoSuchElementException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
+import wooteco.subway.domain.Section;
 import wooteco.subway.dto.section.SectionRequest;
-import wooteco.subway.dto.section.SectionResponse;
 
 @Component
 public class SectionDao {
 
     private final JdbcTemplate jdbcTemplate;
-    private final RowMapper<SectionResponse> sectionRowMapper = (rs, rowNum) -> {
+    private final RowMapper<Section> sectionRowMapper = (rs, rowNum) -> {
         var id = rs.getLong("id");
         var upStationId = rs.getLong("up_station_id");
         var downStationId = rs.getLong("down_station_id");
         var distance = rs.getInt("distance");
-        return new SectionResponse(id, upStationId, downStationId, distance);
+        return new Section(id, upStationId, downStationId, distance);
     };
 
     public SectionDao(JdbcTemplate jdbcTemplate) {
@@ -44,18 +44,18 @@ public class SectionDao {
         }
     }
 
-    public List<SectionResponse> findByLineId(Long id) {
+    public List<Section> findByLineId(Long id) {
         var sql = "SELECT * FROM section WHERE line_id = ?";
         return jdbcTemplate.query(sql, sectionRowMapper, id);
     }
 
-    public void update(SectionRequest sectionRequest) {
+    public void update(Section section) {
         var sql = "UPDATE section SET up_station_id = ?, down_station_id = ?, distance = ? WHERE id = ?";
         jdbcTemplate.update(sql,
-                sectionRequest.getUpStationId(),
-                sectionRequest.getDownStationId(),
-                sectionRequest.getDistance(),
-                sectionRequest.getId()
-                );
+                section.getUpStationId(),
+                section.getDownStationId(),
+                section.getDistance(),
+                section.getId()
+        );
     }
 }
