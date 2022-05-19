@@ -20,22 +20,30 @@ public class Section {
     }
 
     public static Section createWhenSameUpStation(Section target, Section subSection) {
-        var distance = target.getDistance() - subSection.getDistance();
         return new Section(
                 target.getId(),
                 subSection.getDownStationId(),
                 target.getDownStationId(),
-                distance
+                target.calculateDistance(subSection)
         );
     }
 
+    private int calculateDistance(Section subSection) {
+        var distance = this.distance - subSection.getDistance();
+
+        if (distance > 0) {
+            return distance;
+        }
+
+        throw new IllegalArgumentException("[ERROR] 기존 역 사이 길이보다 크거나 같으면 등록을 할 수 없습니다.");
+    }
+
     public static Section createWhenSameDownStation(Section target, Section subSection) {
-        var distance = target.getDistance() - subSection.getDistance();
         return new Section(
                 target.getId(),
                 target.getUpStationId(),
                 subSection.getUpStationId(),
-                distance
+                target.calculateDistance(subSection)
         );
     }
 

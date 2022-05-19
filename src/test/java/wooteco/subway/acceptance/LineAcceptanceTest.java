@@ -38,7 +38,7 @@ public class LineAcceptanceTest extends AcceptanceTest {
         params.put("color", color);
         params.put("upStationId", getId(response1));
         params.put("downStationId", getId(response2));
-        params.put("distance", "0");
+        params.put("distance", "4");
 
         return requestCreate("/lines", params);
     }

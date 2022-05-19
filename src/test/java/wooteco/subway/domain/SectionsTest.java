@@ -1,6 +1,7 @@
 package wooteco.subway.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 import java.util.List;
@@ -46,6 +47,18 @@ public class SectionsTest {
                 () -> assertThat(sections.createSection(section).get().getDownStationId()).isEqualTo(
                         expected.getDownStationId()),
                 () -> assertThat(sections.createSection(section).get().getDistance()).isEqualTo(expected.getDistance())
+        );
+    }
+
+    @Test
+    @DisplayName("기존 역 사이 길이보다 크거나 같으면 예외발생")
+    void createSection3() {
+        var invalidSection = new Section(2L, 3L, 2);
+        var invalidSection2 = new Section(2L, 3L, 3);
+
+        assertAll(
+                () -> assertThatThrownBy(() -> sections.createSection(invalidSection)).isInstanceOf(IllegalArgumentException.class),
+                () -> assertThatThrownBy(() -> sections.createSection(invalidSection2)).isInstanceOf(IllegalArgumentException.class)
         );
     }
 }
