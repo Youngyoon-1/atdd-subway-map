@@ -78,7 +78,7 @@ public class LineService {
 
         var sections = new Sections(sectionDao.findByLineId(lineId));
 
-        sectionDao.update(sections.createUpdatedSection(new Section(upStationId, downStationId, distance)));
+        sectionDao.update(sections.createSectionBySection(new Section(upStationId, downStationId, distance)));
         sectionDao.save(lineId, sectionRequest);
     }
 
@@ -86,14 +86,14 @@ public class LineService {
     public void deleteSection(Long lineId, Long stationId) {
         var allSections = sectionDao.findByLineId(lineId);
 
-        var sections = new Sections(allSections, stationId);
+        var sections = Sections.createByStationId(allSections, stationId);
 
         if (sections.hasOnlyOneSection()) {
             sectionDao.delete(sections.getFirstSection());
             return;
         }
 
-        sectionDao.update(new Section(sections));
+        sectionDao.update(sections.createSection());
         sectionDao.delete(sections.getSecondSection());
     }
 }

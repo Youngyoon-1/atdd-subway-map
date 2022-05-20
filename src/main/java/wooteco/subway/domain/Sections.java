@@ -12,17 +12,19 @@ public class Sections {
         this.sections = sections;
     }
 
-    public Sections(List<Section> sections, Long stationId) {
+    public static Sections createByStationId(List<Section> sections, Long stationId) {
         if (sections.size() == 1) {
             throw new IllegalArgumentException("[ERROR] 구간이 하나인 노선에서 마지막 구간을 제거할 수 없습니다.");
         }
 
-        this.sections = sections.stream()
+        var parsedSections = sections.stream()
                 .filter(it -> it.isSameStationId(stationId))
                 .collect(Collectors.toList());
+
+        return new Sections(parsedSections);
     }
 
-    public Section createUpdatedSection(Section section) {
+    public Section createSectionBySection(Section section) {
         var sameUpStationSection = sections.stream().filter(it -> it.isSameUpStationId(section)).findAny();
         var downUpStationSection = sections.stream().filter(it -> it.isSameDownStationId(section)).findAny();
 
@@ -44,6 +46,18 @@ public class Sections {
 
     public boolean hasOnlyOneSection() {
         return sections.size() == 1;
+    }
+
+    public Section createSection() {
+        var firstSection = sections.get(0);
+        var secondSection = sections.get(1);
+
+        return new Section(
+                firstSection.getId(),
+                firstSection.getUpStationId(),
+                secondSection.getDownStationId(),
+                firstSection.plusDistance(secondSection)
+        );
     }
 
     public Section getFirstSection() {

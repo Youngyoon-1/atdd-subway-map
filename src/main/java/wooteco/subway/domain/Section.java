@@ -19,20 +19,6 @@ public class Section {
         this.distance = distance;
     }
 
-    public Section(Sections sections) {
-        var firstSection = sections.getFirstSection();
-        var secondSection = sections.getSecondSection();
-
-        this.id = firstSection.getId();
-        this.upStationId = firstSection.getUpStationId();
-        this.downStationId = secondSection.getDownStationId();
-        this.distance = firstSection.plusDistance(secondSection);
-    }
-
-    private int plusDistance(Section secondSection) {
-        return distance + secondSection.getDistance();
-    }
-
     public static Section createWhenSameUpStation(Section target, Section subSection) {
         return new Section(
                 target.getId(),
@@ -59,6 +45,10 @@ public class Section {
                 subSection.getUpStationId(),
                 target.minusDistance(subSection)
         );
+    }
+
+    int plusDistance(Section secondSection) {
+        return distance + secondSection.distance;
     }
 
     public Long getDownStationId() {
