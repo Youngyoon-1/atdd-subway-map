@@ -188,7 +188,7 @@ class LineServiceTest {
         var testStationId = insertStation("테스트3역");
 
         //when
-        lineService.createSection(id, new SectionRequest(upStationId, testStationId, 1));
+        lineService.addSection(id, new SectionRequest(upStationId, testStationId, 1));
 
         //then
         assertThat(findSectionByLineId(id)).contains(
@@ -206,7 +206,7 @@ class LineServiceTest {
         var testStationId = insertStation("테스트3역");
 
         //when
-        lineService.createSection(id, new SectionRequest(testStationId, downStationId, 1));
+        lineService.addSection(id, new SectionRequest(testStationId, downStationId, 1));
 
         //then
         assertThat(findSectionByLineId(id)).contains(
@@ -223,5 +223,43 @@ class LineServiceTest {
             return new SectionResponse(upStationId, downStationId);
         };
         return jdbcTemplate.query(sql, sectionMapper, id);
+    }
+
+    @Test
+    @DisplayName("구간 삭제시 상행역이 삭제되는 경우")
+    void deleteSection() {
+        //given
+        var lineResponse = lineService.createLine(lineRequest);
+        var id = lineResponse.getId();
+        var testStationId = insertStation("테스트3역");
+        lineService.addSection(id, new SectionRequest(testStationId, downStationId, 1));
+
+        //when
+        lineService.deleteSection(id, upStationId);
+
+        //then
+        var sectionResponse = findSectionByLineId(id);
+        assertThat(sectionResponse.size()).isEqualTo(1);
+        assertThat(sectionResponse.get(0).getUpStationId()).isEqualTo(testStationId);
+        assertThat(sectionResponse.get(0).getDownStationId()).isEqualTo(downStationId);
+    }
+
+    @Test
+    @DisplayName("구간 삭제시 중간역이 삭제되는 경우")
+    void deleteSection2() {
+        //given
+        var lineResponse = lineService.createLine(lineRequest);
+        var id = lineResponse.getId();
+        var testStationId = insertStation("테스트3역");
+        lineService.addSection(id, new SectionRequest(testStationId, downStationId, 1));
+
+        //when
+        lineService.deleteSection(id, testStationId);
+
+        //then
+        var sectionResponse = findSectionByLineId(id);
+        assertThat(sectionResponse.size()).isEqualTo(1);
+        assertThat(sectionResponse.get(0).getUpStationId()).isEqualTo(upStationId);
+        assertThat(sectionResponse.get(0).getDownStationId()).isEqualTo(downStationId);
     }
 }

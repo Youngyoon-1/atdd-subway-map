@@ -71,18 +71,29 @@ public class LineService {
     }
 
     @Transactional
-    public void createSection(Long lineId, SectionRequest sectionRequest) {
+    public void addSection(Long lineId, SectionRequest sectionRequest) {
         var upStationId = sectionRequest.getUpStationId();
         var downStationId = sectionRequest.getDownStationId();
         var distance = sectionRequest.getDistance();
 
         var sections = new Sections(sectionDao.findByLineId(lineId));
 
-        sectionDao.update(sections.createSection(new Section(upStationId, downStationId, distance)));
+        sectionDao.update(sections.createUpdatedSection(new Section(upStationId, downStationId, distance)));
         sectionDao.save(lineId, sectionRequest);
     }
 
+    @Transactional
     public void deleteSection(Long lineId, Long stationId) {
-        sectionDao.delete(lineId, stationId);
+        var allSections = sectionDao.findByLineId(lineId);
+
+        var sections = new Sections(allSections, stationId);
+
+        if (sections.hasOnlyOneSection()) {
+            sectionDao.delete(sections.getFirstSection());
+            return;
+        }
+
+        sectionDao.update(new Section(sections));
+        sectionDao.delete(sections.getSecondSection());
     }
 }

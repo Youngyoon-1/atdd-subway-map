@@ -19,16 +19,30 @@ public class Section {
         this.distance = distance;
     }
 
+    public Section(Sections sections) {
+        var firstSection = sections.getFirstSection();
+        var secondSection = sections.getSecondSection();
+
+        this.id = firstSection.getId();
+        this.upStationId = firstSection.getUpStationId();
+        this.downStationId = secondSection.getDownStationId();
+        this.distance = firstSection.plusDistance(secondSection);
+    }
+
+    private int plusDistance(Section secondSection) {
+        return distance + secondSection.getDistance();
+    }
+
     public static Section createWhenSameUpStation(Section target, Section subSection) {
         return new Section(
                 target.getId(),
                 subSection.getDownStationId(),
                 target.getDownStationId(),
-                target.calculateDistance(subSection)
+                target.minusDistance(subSection)
         );
     }
 
-    private int calculateDistance(Section subSection) {
+    private int minusDistance(Section subSection) {
         var distance = this.distance - subSection.getDistance();
 
         if (distance > 0) {
@@ -43,7 +57,7 @@ public class Section {
                 target.getId(),
                 target.getUpStationId(),
                 subSection.getUpStationId(),
-                target.calculateDistance(subSection)
+                target.minusDistance(subSection)
         );
     }
 
@@ -69,5 +83,9 @@ public class Section {
 
     public boolean isSameDownStationId(Section section) {
         return this.downStationId.equals(section.downStationId);
+    }
+
+    public boolean isSameStationId(Long stationId) {
+        return downStationId.equals(stationId) || upStationId.equals(stationId);
     }
 }

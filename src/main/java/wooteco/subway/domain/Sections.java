@@ -2,6 +2,7 @@ package wooteco.subway.domain;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class Sections {
 
@@ -11,7 +12,13 @@ public class Sections {
         this.sections = sections;
     }
 
-    public Section createSection(Section section) {
+    public Sections(List<Section> sections, Long stationId) {
+        this.sections = sections.stream()
+                .filter(it -> it.isSameStationId(stationId))
+                .collect(Collectors.toList());
+    }
+
+    public Section createUpdatedSection(Section section) {
         var sameUpStationSection = sections.stream().filter(it -> it.isSameUpStationId(section)).findAny();
         var downUpStationSection = sections.stream().filter(it -> it.isSameDownStationId(section)).findAny();
 
@@ -29,5 +36,17 @@ public class Sections {
         if (sameUpStationSection.isEmpty() && downUpStationSection.isEmpty()) {
             throw new IllegalArgumentException("[ERROR] 상행역과 하행역 둘 중 하나도 포함되어있지 않습니다.");
         }
+    }
+
+    public boolean hasOnlyOneSection() {
+        return sections.size() == 1;
+    }
+
+    public Section getFirstSection() {
+        return sections.get(0);
+    }
+
+    public Section getSecondSection() {
+        return sections.get(1);
     }
 }

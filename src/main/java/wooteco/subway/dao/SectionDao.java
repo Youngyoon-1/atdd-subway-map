@@ -35,9 +35,18 @@ public class SectionDao {
         );
     }
 
-    public void delete(Long lineId, Long sectionId) {
+    public void delete(Long lineId, Long stationId) {
         var sql = "DELETE FROM section WHERE line_id = ? AND id = ?";
-        var removedRowCount = jdbcTemplate.update(sql, lineId, sectionId);
+        var removedRowCount = jdbcTemplate.update(sql, lineId, stationId);
+
+        if (removedRowCount == 0) {
+            throw new NoSuchElementException("[ERROR] 정보와 일치하는 구간이 없습니다.");
+        }
+    }
+
+    public void delete(Section section) {
+        var sql = "DELETE FROM section WHERE id = ?";
+        var removedRowCount = jdbcTemplate.update(sql, section.getId());
 
         if (removedRowCount == 0) {
             throw new NoSuchElementException("[ERROR] 정보와 일치하는 구간이 없습니다.");
