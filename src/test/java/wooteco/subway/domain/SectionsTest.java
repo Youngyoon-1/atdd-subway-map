@@ -83,4 +83,12 @@ public class SectionsTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("[ERROR] 상행역과 하행역 둘 중 하나도 포함되어있지 않습니다.");
     }
+
+    @Test
+    @DisplayName("Sections 생성시 구간이 하나인 경우에 예외발생")
+    void createSections() {
+        assertThatThrownBy(() -> new Sections(List.of(new Section(-1L, -1L, -1)), -1L))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("[ERROR] 구간이 하나인 노선에서 마지막 구간을 제거할 수 없습니다.");
+    }
 }

@@ -13,6 +13,10 @@ public class Sections {
     }
 
     public Sections(List<Section> sections, Long stationId) {
+        if (sections.size() == 1) {
+            throw new IllegalArgumentException("[ERROR] 구간이 하나인 노선에서 마지막 구간을 제거할 수 없습니다.");
+        }
+
         this.sections = sections.stream()
                 .filter(it -> it.isSameStationId(stationId))
                 .collect(Collectors.toList());
